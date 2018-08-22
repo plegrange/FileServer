@@ -58,7 +58,7 @@ public class ClientThread extends Observable implements Runnable {
         //sent out initial welcome message etc. if required...
         pw.println("Welcome to Java based Server");
 
-
+        int line_counter = 0;
         //start listening message from client//
         FileWriter writer = null;
         try {
@@ -78,7 +78,8 @@ public class ClientThread extends Observable implements Runnable {
                 }
                 while ((msg = br.readLine()) != null && streaming) {
                     writer.append(msg + "\n");
-                    System.out.println(msg);
+                    line_counter++;
+                    System.out.println(line_counter+": "+msg);
                 }
                 //pw.println(msg); //echo msg back to client//
             }
