@@ -18,11 +18,11 @@ public class ClientThread extends Observable implements Runnable {
      */
     private Socket socket;
     private boolean running;
-
-    public ClientThread(Socket socket) throws IOException {
-
+    private Server server;
+    public ClientThread(Socket socket, Server server) throws IOException {
         this.socket = socket;
         running = false;
+        this.server = server;
         //get I/O from socket
         try {
             br = new BufferedReader(
@@ -50,38 +50,22 @@ public class ClientThread extends Observable implements Runnable {
     private String fileName;
     private String data = "";
     private boolean streaming = false;
-
+    private int portInUse;
     @Override
     public void run() {
         String msg = ""; //will hold message sent from client
 
         //sent out initial welcome message etc. if required...
-        pw.println("Welcome to Java based Server");
+        //pw.println("Welcome to Java based Server");
 
-        int line_counter = 0;
         //start listening message from client//
-        FileWriter writer = null;
+
         try {
             while ((msg = br.readLine()) != null && running) {
                 //provide your server's logic here//
-                if (msg.equals("END")) {
-                    streaming = false;
-                    writer.flush();
-                    writer.close();
-                    System.out.println("Data written to " + fileName);
-                }
-                if (msg.equals("INCOMING NAME")) {
-                    streaming = true;
-                    fileName = br.readLine();
-                    writer = new FileWriter(fileName);
-                    System.out.println("Filename: "+fileName);
-                }
-                while ((msg = br.readLine()) != null && streaming) {
-                    writer.append(msg + "\n");
-                    line_counter++;
-                    System.out.println(line_counter+": "+msg);
-                }
-                //pw.println(msg); //echo msg back to client//
+                if(msg.equals("GETPORT"))
+                    portInUse = server.getAvailablePort();
+                pw.println(portInUse); //echo msg back to client//
             }
             running = false;
         } catch (IOException ioe) {
@@ -90,6 +74,7 @@ public class ClientThread extends Observable implements Runnable {
         //it's time to close the socket
         try {
             this.socket.close();
+            server.returnPort(portInUse);
             System.out.println("Closing connection");
         } catch (IOException ioe) {
         }

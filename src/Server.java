@@ -3,16 +3,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Stack;
 import java.util.Vector;
 
 public class Server implements Observer {
     public static void main(String[] args) {
-        Server newServer = new Server();
+        Server newServer = new Server(5555);
         newServer.startServer();
     }
 
     private Socket socket;
-
+    private Stack<Integer> availablePorts = new Stack<>();
     /**
      * This vector holds all connected clients.
      * May be used for broadcasting, etc.
@@ -30,16 +31,34 @@ public class Server implements Observer {
      */
     private ClientThread clientThread;
 
+    private void populatePortStack() {
+        availablePorts.push(5000);
+        availablePorts.push(5001);
+        availablePorts.push(5002);
+        availablePorts.push(5003);
+        availablePorts.push(5004);
+        availablePorts.push(5005);
+    }
+
+    public void returnPort(int portNumber) {
+        availablePorts.push(portNumber);
+    }
+
+    public int getAvailablePort() {
+        return (availablePorts.pop());
+    }
+
     /**
      * Port number of Server.
      */
     private int port;
     private boolean listening; //status for listening
 
-    public Server() {
+    public Server(int port) {
         this.clients = new Vector();
-        this.port = 5555; //default port
+        this.port = port; //default port
         this.listening = false;
+        populatePortStack();
     }
 
     public void startServer() {
@@ -112,7 +131,7 @@ public class Server implements Observer {
                     System.out.println("New Client Thread Started");
                     try {
                         Server.this.clientThread =
-                                new ClientThread(Server.this.socket);
+                                new ClientThread(Server.this.socket, Server.this);
                         Thread t =
                                 new Thread(Server.this.clientThread);
                         Server.this.clientThread.addObserver(Server.this);
